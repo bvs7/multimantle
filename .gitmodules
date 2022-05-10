@@ -1,0 +1,3 @@
+[submodule "semantle"]
+	path = semantle
+	url = git@gitlab.com:novalis_dt/semantle.git

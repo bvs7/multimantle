@@ -1,0 +1,6 @@
+semantle/*
+
+*.pyc
+
+word2vec.db
+multimantle_bot.tok
