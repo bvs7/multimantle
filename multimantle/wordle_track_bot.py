@@ -82,6 +82,9 @@ class WordleTrack(commands.Cog):
     @commands.command()
     async def show(self, ctx : commands.Context, date:str = None):
         """Reveal all scores or games"""
+
+        show_results = False
+
         con = sqlite3.connect(self.db_name)
         cur = con.cursor()
         if not date == None:
@@ -91,6 +94,7 @@ class WordleTrack(commands.Cog):
                 await ctx.send(f"Invalid date: {date}")
                 return
             date = getDate(date)
+            show_results = True
         else: 
             date = getDate()
         select = f"SELECT * FROM results WHERE date={date}"
@@ -104,8 +108,10 @@ class WordleTrack(commands.Cog):
             await ctx.send(f"No results for Game #{date}")
             return
 
-        # TODO: make check if everyone is done, not just if n people finished
-        if len(rows) == 6 or isinstance(ctx.channel, discord.DMChannel):
+        if isinstance(ctx.channel, discord.DMChannel):
+            show_results = True
+        
+        if show_results:
             responses = [formatEntry(entry) for entry in rows]
         else:
             responses = [formatScore(entry) for entry in rows]
