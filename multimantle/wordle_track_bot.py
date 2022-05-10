@@ -33,6 +33,34 @@ def formatEntry(entry):
 def formatScore(entry):
     return f"{entry[2]}: {entry[3]}"
 
+def formatScoreDisplay(member, scores):
+    if len(scores) == 0:
+        avg = 6
+    else:
+        avg = round(sum(scores)/len(scores),2)
+
+    return f"""Record for {member.name}:
+    1: {scores.count(1)}
+    2: {scores.count(2)}
+    3: {scores.count(3)}
+    4: {scores.count(4)}
+    5: {scores.count(5)}
+    6: {scores.count(6)}
+    X: {"Cannot count failures yet"}
+    Average: {avg}"""
+
+def getAvg(scores):
+    if len(scores) == 0:
+        return 6
+    else:
+        return round(sum(scores)/len(scores),2)
+
+def formatAvg(member, avg):
+    return f"{member.name} avg: {avg}"
+
+    
+
+
 class WordleTrack(commands.Cog):
 
     def __init__(self, bot):
@@ -130,6 +158,59 @@ class WordleTrack(commands.Cog):
         con.close()
 
         await ctx.send(f"Updated Game #{date} word: {word}")
+
+    def getScores(self, user_id):
+
+        select = f"SELECT score FROM results WHERE id=?"
+
+        con = sqlite3.connect(self.db_name)
+        cur = con.cursor()
+        res = cur.execute(select, (user_id,))
+        rows = list(cur.fetchall())
+        con.close()
+
+        return [row[0] for row in rows]
+
+    def getScoresOfMentions(self, ctx : commands.Context):
+        to_score = set()
+        to_score.update(ctx.message.mentions)
+        logging.debug(f"mention_everyone: {ctx.message.mention_everyone}")
+        if ctx.message.mention_everyone:
+            logging.debug(f"{[m for m in ctx.channel.members if not m.bot]}")
+            to_score.update([m for m in ctx.channel.members if not m.bot])
+        
+        return [(m,self.getScores(m.id)) for m in to_score]
+
+    @commands.command()
+    async def score(self, ctx : commands.Context):
+        """Get past scores of a member or members"""
+        score_list = self.getScoresOfMentions(ctx)
+
+        responses = [formatScoreDisplay(*entry) for entry in score_list]
+
+        if len(responses) == 0:
+            await ctx.send("Please specify who with a mention")
+            return
+        
+        await ctx.send("\n".join(responses))
+
+    @commands.command()
+    async def average(self, ctx : commands.Context):
+        """Get average score of a member or members"""
+        score_list = self.getScoresOfMentions(ctx)
+
+        avgs = [(entry[0], getAvg(entry[1])) for entry in score_list]
+
+        avgs.sort(key=(lambda e:e[1]))
+
+        responses = [formatAvg(*entry) for entry in avgs]
+
+        if len(responses) == 0:
+            await ctx.send("Please specify who with a mention")
+            return
+
+        await ctx.send("\n".join(responses))
+
 
 
 """

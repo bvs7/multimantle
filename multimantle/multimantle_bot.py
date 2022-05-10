@@ -6,7 +6,9 @@ import datetime
 from typing import Dict
 import logging
 
-logging.basicConfig(level = logging.INFO)
+from numpy import True_
+
+logging.basicConfig(level = logging.DEBUG)
 
 from multimantle_game import MultimantleGame, MultimantleGameSimul, MultimantleGameType, NoWordFoundError, semantle
 
@@ -15,7 +17,10 @@ from wordle_track_bot import WordleTrack
 with open("../multimantle_bot.tok", "r") as f:
     token = f.read().strip()
 
-bot = commands.Bot(command_prefix="!")
+
+intents = discord.Intents().default()
+intents.members = True
+bot = commands.Bot(command_prefix="!", intents=intents)
 
 semantle_start = datetime.datetime(year=2022,month=1,day=28,hour=17)
 
