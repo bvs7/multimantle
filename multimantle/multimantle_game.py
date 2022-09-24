@@ -122,7 +122,10 @@ def dot(a, b):
     return sum([na*nb for na,nb in zip(a,b)])
 
 def getCosSim(a,b):
-    return dot(a,b)/(mag(a)*mag(b))
+    if mag(a) * mag(b) != 0:
+        return dot(a,b)/(mag(a)*mag(b))
+    else:
+        return -1
 
 def plus(v1,v2):
     return [a+b for a,b in zip(v1,v2)]
